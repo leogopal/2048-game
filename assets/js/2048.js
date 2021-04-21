@@ -5,6 +5,10 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+Mousetrap.bind('g o d', function() { 
+  alert('Leo is my creator');
+ });
+
 
 function GameManager(size, InputManager, Actuator) {
   this.size         = size; // Size of the grid
@@ -539,6 +543,3 @@ Tile.prototype.updatePosition = function (position) {
 };
 
 
-Mousetrap.bind('w h o s y o u r d a d d y', function() { 
-  alert('Leo');
- });
