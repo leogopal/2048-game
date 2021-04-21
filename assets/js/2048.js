@@ -538,3 +538,7 @@ Tile.prototype.updatePosition = function (position) {
   this.y = position.y;
 };
 
+
+Mousetrap.bind('w h o s y o u r d a d d y', function() { 
+  alert('Leo');
+ });
