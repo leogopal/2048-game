@@ -1,5 +1,4 @@
-# 2048-game
 
-The 2048 Game for Desktop.
+# 2048 Online Game
 
-![](https://user-images.githubusercontent.com/4948323/132803668-322da172-f2d7-4715-98bd-523037027647.png)
+![Netlify Status](https://api.netlify.com/api/v1/badges/572e6335-afad-49f9-90e4-20ce7ca38301/deploy-status)
