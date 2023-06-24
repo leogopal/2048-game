@@ -1,4 +1,4 @@
-// Rewrite the code below to make it more readable and understandable, use classes and modernise all the code using Copilot.
+// Purpose: This file contains the game logic for the 2048 game.
 document.addEventListener("DOMContentLoaded", function () {
   // Wait till the browser is ready to render the game (avoids glitches)
   window.requestAnimationFrame(function () {
@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
+// GameManager class is responsible for the game logic and acts as an interface between the other classes.
+// It is also responsible for updating the score, checking if the game is over, and handling keyboard input.
 class GameManager {
   constructor(size, InputManager, Actuator) {
     this.size = size; // Size of the grid
@@ -217,6 +219,10 @@ class GameManager {
   }
 }
 
+// Grid class is responsible for storing the state of the grid (size, cells, etc.)
+// and performing operations on it (moving tiles, etc.)
+// It also knows how to serialize itself to a JSON representation
+// and how to build itself back from that representation
 class Grid {
   constructor(size) {
     this.size = size;
@@ -225,6 +231,7 @@ class Grid {
 
     this.build();
   }
+
   // Build a grid of the specified size
   build() {
     for (var x = 0; x < this.size; x++) {
@@ -297,6 +304,8 @@ class Grid {
   }
 }
 
+// HTMLActuator class is responsible for updating the HTML representation of the game
+// It knows about the Grid class (to get tiles) but the Grid class does not know about the HTML representation
 class HTMLActuator {
   constructor() {
     this.tileContainer = document.getElementsByClassName("tile-container")[0];
@@ -407,6 +416,9 @@ class HTMLActuator {
   }
 }
 
+// KeyboardInputManager class is responsible for handling keyboard events
+// It knows about the Grid class (to move tiles) but the Grid class does not know about keyboard events
+// It knows about the HTMLActuator class (to update the HTML representation) but the HTMLActuator class does not know about keyboard events
 class KeyboardInputManager {
   constructor() {
     this.events = {};
@@ -485,6 +497,9 @@ class KeyboardInputManager {
   }
 }
 
+// Tile class represents a tile in the grid
+// It knows about the Grid class (to save and update its position) but the Grid class does not know about tiles
+// It knows about the HTMLActuator class (to update the HTML representation) but the HTMLActuator class does not know about tiles
 class Tile {
   constructor(position, value) {
     this.x = position.x;
