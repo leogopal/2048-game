@@ -351,12 +351,13 @@ class HTMLActuator {
       container.removeChild(container.firstChild);
     }
   }
+
   addTile(tile) {
     var self = this;
 
     var element = document.createElement("div");
     var position = tile.previousPosition || { x: tile.x, y: tile.y };
-    positionClass = this.positionClass(position);
+    var positionClass = this.positionClass(position);
 
     // We can't use classlist because it somehow glitches when replacing classes
     var classes = ["tile", "tile-" + tile.value, positionClass];
@@ -392,6 +393,7 @@ class HTMLActuator {
   normalizePosition(position) {
     return { x: position.x + 1, y: position.y + 1 };
   }
+  // Converts a position to a CSS class
   positionClass(position) {
     position = this.normalizePosition(position);
     return "tile-position-" + position.x + "-" + position.y;
