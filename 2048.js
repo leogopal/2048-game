@@ -21,6 +21,15 @@ class GameManager {
 
     this.setup();
   }
+
+  // Get players name
+  getName() {
+    var name = prompt("Please enter your name", "Harry Potter");
+    if (name != null) {
+      document.getElementById("name").innerHTML = name;
+    }
+  }
+
   // Restart the game
   restart() {
     this.actuator.restart();
@@ -454,7 +463,8 @@ class KeyboardInputManager {
     };
 
     document.addEventListener("keydown", function (event) {
-      var modifiers = event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
+      var modifiers =
+        event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
       var mapped = map[event.which];
 
       if (!modifiers) {
@@ -515,5 +525,33 @@ class Tile {
   updatePosition(position) {
     this.x = position.x;
     this.y = position.y;
+  }
+}
+
+// LocalStorageManager class is responsible for saving and loading game state
+// It knows about the Grid class (to get the grid state) but the Grid class does not know about saving and loading
+// It knows about the HTMLActuator class (to save and load the game) but the HTMLActuator class does not know about saving and loading
+class LocalStorageManager {
+  constructor() {
+    this.bestScoreKey = "bestScore";
+    this.gameStateKey = "gameState";
+
+    this.storage = window.localStorage;
+  }
+  getBestScore() {
+    return this.storage.getItem(this.bestScoreKey) || 0;
+  }
+  setBestScore(score) {
+    this.storage.setItem(this.bestScoreKey, score);
+  }
+  getGameState() {
+    var stateJSON = this.storage.getItem(this.gameStateKey);
+    return stateJSON ? JSON.parse(stateJSON) : null;
+  }
+  setGameState(gameState) {
+    this.storage.setItem(this.gameStateKey, JSON.stringify(gameState));
+  }
+  clearGameState() {
+    this.storage.removeItem(this.gameStateKey);
   }
 }
