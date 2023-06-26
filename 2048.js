@@ -14,6 +14,9 @@ class GameManager {
     this.inputManager = new InputManager();
     this.actuator = new Actuator();
 
+    // Use the function below to get the players name
+    this.getName();
+
     this.startTiles = 2;
 
     this.inputManager.on("move", this.move.bind(this));
@@ -22,12 +25,11 @@ class GameManager {
     this.setup();
   }
 
-  // Get players name
+  // Get players name and save it to local storage and display it on the page
   getName() {
-    var name = prompt("Please enter your name", "Harry Potter");
-    if (name != null) {
-      document.getElementById("name").innerHTML = name;
-    }
+    var name = prompt("Please enter your name", "Name");
+    localStorage.setItem("name", name);
+    document.getElementById("name").innerHTML = localStorage.getItem("name");
   }
 
   // Restart the game
@@ -341,6 +343,14 @@ class HTMLActuator {
 
       if (metadata.over) self.message(false); // You lose
       if (metadata.won) self.message(true); // You win!
+
+      // Save the final score to localStorage
+      if (metadata.over) self.bestScore = localStorage.getItem("bestScore");
+      if (self.score > self.bestScore) {
+        self.bestScore = self.score;
+        localStorage.setItem("bestScore", self.bestScore);
+      }
+
     });
   }
   restart() {
@@ -351,7 +361,17 @@ class HTMLActuator {
       container.removeChild(container.firstChild);
     }
   }
-
+  applyClasses(element, classes) {
+    element.setAttribute("class", classes.join(" "));
+  }
+  normalizePosition(position) {
+    return { x: position.x + 1, y: position.y + 1 };
+  }
+  // Converts a position to a CSS class
+  positionClass(position) {
+    position = this.normalizePosition(position);
+    return "tile-position-" + position.x + "-" + position.y;
+  }
   addTile(tile) {
     var self = this;
 
@@ -387,17 +407,7 @@ class HTMLActuator {
     // Put the tile on the board
     this.tileContainer.appendChild(element);
   }
-  applyClasses(element, classes) {
-    element.setAttribute("class", classes.join(" "));
-  }
-  normalizePosition(position) {
-    return { x: position.x + 1, y: position.y + 1 };
-  }
-  // Converts a position to a CSS class
-  positionClass(position) {
-    position = this.normalizePosition(position);
-    return "tile-position-" + position.x + "-" + position.y;
-  }
+
   updateScore(score) {
     this.clearContainer(this.scoreContainer);
 
@@ -530,30 +540,3 @@ class Tile {
   }
 }
 
-// LocalStorageManager class is responsible for saving and loading game state
-// It knows about the Grid class (to get the grid state) but the Grid class does not know about saving and loading
-// It knows about the HTMLActuator class (to save and load the game) but the HTMLActuator class does not know about saving and loading
-class LocalStorageManager {
-  constructor() {
-    this.bestScoreKey = "bestScore";
-    this.gameStateKey = "gameState";
-
-    this.storage = window.localStorage;
-  }
-  getBestScore() {
-    return this.storage.getItem(this.bestScoreKey) || 0;
-  }
-  setBestScore(score) {
-    this.storage.setItem(this.bestScoreKey, score);
-  }
-  getGameState() {
-    var stateJSON = this.storage.getItem(this.gameStateKey);
-    return stateJSON ? JSON.parse(stateJSON) : null;
-  }
-  setGameState(gameState) {
-    this.storage.setItem(this.gameStateKey, JSON.stringify(gameState));
-  }
-  clearGameState() {
-    this.storage.removeItem(this.gameStateKey);
-  }
-}
