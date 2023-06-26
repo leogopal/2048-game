@@ -14,9 +14,6 @@ class GameManager {
     this.inputManager = new InputManager();
     this.actuator = new Actuator();
 
-    // Use the function below to get the players name
-    this.getName();
-
     this.startTiles = 2;
 
     this.inputManager.on("move", this.move.bind(this));
@@ -50,6 +47,9 @@ class GameManager {
 
     // Update the actuator
     this.actuate();
+
+    // Use the function below to get the players name
+    this.getName();
   }
   // Set up the initial tiles to start the game with
   addStartTiles() {
