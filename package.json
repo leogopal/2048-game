@@ -1,0 +1,25 @@
+{
+  "name": "2048-game",
+  "version": "1.0.0",
+  "description": "A modern implementation of the classic 2048 game",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "game",
+    "puzzle",
+    "2048"
+  ],
+  "author": "",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "animejs": "^3.2.1",
+    "js-confetti": "^0.11.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

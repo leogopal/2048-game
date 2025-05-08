@@ -1,41 +1,116 @@
+// Import dependencies
+import anime from 'animejs/lib/anime.es.js';
+import JSConfetti from 'js-confetti';
+
+// Initialize confetti
+const jsConfetti = new JSConfetti();
+
 // Purpose: This file contains the game logic for the 2048 game.
 document.addEventListener("DOMContentLoaded", function () {
   // Wait till the browser is ready to render the game (avoids glitches)
   window.requestAnimationFrame(function () {
     var manager = new GameManager(4, KeyboardInputManager, HTMLActuator);
+    
+    // Theme toggle
+    const themeSwitch = document.getElementById('theme-switch');
+    themeSwitch.addEventListener('change', () => {
+      if (themeSwitch.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+      }
+    });
+
+    // Check for saved theme preference
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    if (currentTheme === 'dark') {
+      themeSwitch.checked = true;
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    // Game mode selector
+    const gameModeSelector = document.getElementById('game-mode');
+    gameModeSelector.addEventListener('change', function() {
+      const selectedMode = this.value;
+      let size = 4; // default classic size
+      
+      switch(selectedMode) {
+        case 'small':
+          size = 3;
+          break;
+        case 'large':
+          size = 5;
+          break;
+        case 'time':
+          size = 4; // Time attack uses standard grid
+          break;
+        default:
+          size = 4;
+      }
+      
+      // Restart game with new settings
+      manager = new GameManager(size, KeyboardInputManager, HTMLActuator, selectedMode);
+    });
+
+    // New game button
+    document.getElementById('new-game-button').addEventListener('click', function() {
+      manager.restart();
+    });
   });
 });
 
 // GameManager class is responsible for the game logic and acts as an interface between the other classes.
 // It is also responsible for updating the score, checking if the game is over, and handling keyboard input.
 class GameManager {
-  constructor(size, InputManager, Actuator) {
+  constructor(size, InputManager, Actuator, mode = 'classic') {
     this.size = size; // Size of the grid
     this.inputManager = new InputManager();
     this.actuator = new Actuator();
+    this.gameMode = mode;
 
     this.startTiles = 2;
+    this.timeLimit = 120; // 2 minutes for time attack mode
+    this.timeRemaining = this.timeLimit;
+    this.timerInterval = null;
 
     this.inputManager.on("move", this.move.bind(this));
     this.inputManager.on("restart", this.restart.bind(this));
+
+    this.achievementsUnlocked = JSON.parse(localStorage.getItem('achievementsUnlocked') || '{}');
+    this.updateAchievementsDisplay();
 
     this.setup();
   }
 
   // Get players name and save it to local storage and display it on the page
   getName() {
-    var name = prompt("Please enter your name", "Name");
-    localStorage.setItem("name", name);
-    document.getElementById("name").innerHTML = localStorage.getItem("name");
+    var name = localStorage.getItem("name") || null;
+    if (!name) {
+      name = prompt("Please enter your name", "Player");
+      if (!name) name = "Player";
+      localStorage.setItem("name", name);
+    }
+    document.getElementById("name").innerHTML = name;
   }
 
   // Restart the game
   restart() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+    
     this.actuator.restart();
     this.setup();
   }
+  
   // Set up the game
   setup() {
+    // Build the proper grid size based on game mode
+    this.rebuildGrid();
+    
     this.grid = new Grid(this.size);
 
     this.score = 0;
@@ -50,7 +125,81 @@ class GameManager {
 
     // Use the function below to get the players name
     this.getName();
+    
+    // Start timer for time attack mode
+    if (this.gameMode === 'time') {
+      this.timeRemaining = this.timeLimit;
+      this.startTimer();
+    }
   }
+  
+  // Rebuild the grid for different sizes
+  rebuildGrid() {
+    const gridContainer = document.querySelector('.grid-container');
+    gridContainer.innerHTML = '';
+    
+    for (let y = 0; y < this.size; y++) {
+      const row = document.createElement('div');
+      row.className = 'grid-row';
+      
+      for (let x = 0; x < this.size; x++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        row.appendChild(cell);
+      }
+      
+      gridContainer.appendChild(row);
+    }
+    
+    // Adjust CSS for different grid sizes
+    const gameContainer = document.querySelector('.game-container');
+    const tileContainer = document.querySelector('.tile-container');
+    
+    if (this.size === 3) {
+      gameContainer.style.width = '400px';
+      gameContainer.style.height = '400px';
+    } else if (this.size === 5) {
+      gameContainer.style.width = '600px';
+      gameContainer.style.height = '600px';
+    } else {
+      gameContainer.style.width = '500px';
+      gameContainer.style.height = '500px';
+    }
+    
+    // We need to update the CSS for tile positions as well
+    // This would typically be done dynamically for each tile based on grid size
+  }
+  
+  // Start timer for time attack mode
+  startTimer() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
+    
+    const timerDisplay = document.createElement('div');
+    timerDisplay.id = 'timer-display';
+    timerDisplay.className = 'timer-display';
+    timerDisplay.textContent = `Time: ${this.timeRemaining}s`;
+    
+    const container = document.querySelector('.game-controls');
+    const existingTimer = document.getElementById('timer-display');
+    if (existingTimer) {
+      container.removeChild(existingTimer);
+    }
+    container.appendChild(timerDisplay);
+    
+    this.timerInterval = setInterval(() => {
+      this.timeRemaining--;
+      timerDisplay.textContent = `Time: ${this.timeRemaining}s`;
+      
+      if (this.timeRemaining <= 0) {
+        clearInterval(this.timerInterval);
+        this.over = true;
+        this.actuate();
+      }
+    }, 1000);
+  }
+  
   // Set up the initial tiles to start the game with
   addStartTiles() {
     for (var i = 0; i < this.startTiles; i++) {
@@ -72,8 +221,81 @@ class GameManager {
       score: this.score,
       over: this.over,
       won: this.won,
+      gameMode: this.gameMode,
+      bestScore: this.getBestScore()
+    });
+    
+    // Check for achievements
+    this.checkAchievements();
+  }
+  
+  // Get best score from localStorage
+  getBestScore() {
+    const key = `bestScore-${this.gameMode}-${this.size}`;
+    return parseInt(localStorage.getItem(key) || 0);
+  }
+  
+  // Save best score to localStorage
+  saveBestScore() {
+    const key = `bestScore-${this.gameMode}-${this.size}`;
+    const bestScore = this.getBestScore();
+    if (this.score > bestScore) {
+      localStorage.setItem(key, this.score);
+    }
+  }
+  
+  // Check for achievements
+  checkAchievements() {
+    // Find the highest tile value on the board
+    let highestTile = 0;
+    this.grid.eachCell((x, y, tile) => {
+      if (tile && tile.value > highestTile) {
+        highestTile = tile.value;
+      }
+    });
+    
+    // Check for achievements based on highest tile
+    const tileAchievements = {
+      'reach-128': 128,
+      'reach-256': 256,
+      'reach-512': 512,
+      'reach-1024': 1024,
+      'reach-2048': 2048
+    };
+    
+    let newAchievementsUnlocked = false;
+    
+    for (const [achievement, requiredValue] of Object.entries(tileAchievements)) {
+      if (highestTile >= requiredValue && !this.achievementsUnlocked[achievement]) {
+        this.achievementsUnlocked[achievement] = true;
+        newAchievementsUnlocked = true;
+      }
+    }
+    
+    if (newAchievementsUnlocked) {
+      localStorage.setItem('achievementsUnlocked', JSON.stringify(this.achievementsUnlocked));
+      this.updateAchievementsDisplay();
+      
+      // Show confetti for new achievements
+      jsConfetti.addConfetti();
+    }
+  }
+  
+  // Update achievements display
+  updateAchievementsDisplay() {
+    const achievementElements = document.querySelectorAll('.achievement');
+    achievementElements.forEach(element => {
+      const achievementId = element.getAttribute('data-achievement');
+      if (this.achievementsUnlocked[achievementId]) {
+        element.classList.add('unlocked');
+        element.querySelector('i').className = 'fas fa-unlock';
+      } else {
+        element.classList.remove('unlocked');
+        element.querySelector('i').className = 'fas fa-lock';
+      }
     });
   }
+  
   // Save all tile positions and remove merger info
   prepareTiles() {
     this.grid.eachCell(function (x, y, tile) {
@@ -128,9 +350,20 @@ class GameManager {
 
             // Update the score
             self.score += merged.value;
+            
+            // Save best score
+            self.saveBestScore();
 
             // The mighty 2048 tile
             if (merged.value === 2048) self.won = true;
+            
+            // Animate the merged tiles
+            anime({
+              targets: '.tile-merged',
+              scale: [0, 1],
+              easing: 'easeOutElastic(1, .5)',
+              duration: 600
+            });
           } else {
             self.moveTile(tile, positions.farthest);
           }
@@ -321,7 +554,9 @@ class HTMLActuator {
   constructor() {
     this.tileContainer = document.getElementsByClassName("tile-container")[0];
     this.scoreContainer = document.getElementsByClassName("score-container")[0];
+    this.bestContainer = document.getElementsByClassName("best-container")[0];
     this.messageContainer = document.getElementsByClassName("game-message")[0];
+    this.sharingContainer = document.getElementsByClassName("score-sharing")[0];
 
     this.score = 0;
   }
@@ -340,17 +575,10 @@ class HTMLActuator {
       });
 
       self.updateScore(metadata.score);
+      self.updateBestScore(metadata.bestScore);
 
       if (metadata.over) self.message(false); // You lose
       if (metadata.won) self.message(true); // You win!
-
-      // Save the final score to localStorage
-      if (metadata.over) self.bestScore = localStorage.getItem("bestScore");
-      if (self.score > self.bestScore) {
-        self.bestScore = self.score;
-        localStorage.setItem("bestScore", self.bestScore);
-      }
-
     });
   }
   restart() {
@@ -361,6 +589,26 @@ class HTMLActuator {
       container.removeChild(container.firstChild);
     }
   }
+  
+  updateScore(score) {
+    this.clearContainer(this.scoreContainer);
+    this.score = score;
+    this.scoreContainer.textContent = this.score;
+
+    // Animate score changes
+    anime({
+      targets: '.score-container',
+      scale: [1, 1.1, 1],
+      duration: 500,
+      easing: 'easeOutQuad'
+    });
+  }
+  
+  updateBestScore(bestScore) {
+    this.clearContainer(this.bestContainer);
+    this.bestContainer.textContent = bestScore;
+  }
+  
   applyClasses(element, classes) {
     element.setAttribute("class", classes.join(" "));
   }
@@ -408,22 +656,6 @@ class HTMLActuator {
     this.tileContainer.appendChild(element);
   }
 
-  updateScore(score) {
-    this.clearContainer(this.scoreContainer);
-
-    var difference = score - this.score;
-    this.score = score;
-
-    this.scoreContainer.textContent = this.score;
-
-    if (difference > 0) {
-      var addition = document.createElement("div");
-      addition.classList.add("score-addition");
-      addition.textContent = "+" + difference;
-
-      this.scoreContainer.appendChild(addition);
-    }
-  }
   message(won) {
     var type = won ? "game-won" : "game-over";
     var message = won ? "You win!" : "Game over!";
@@ -431,7 +663,60 @@ class HTMLActuator {
     // if (ga) ga("send", "event", "game", "end", type, this.score);
     this.messageContainer.classList.add(type);
     this.messageContainer.getElementsByTagName("p")[0].textContent = message;
+    
+    // Add sharing functionality
+    this.sharingContainer.innerHTML = `
+      <button class="share-button">
+        <i class="fas fa-share-alt"></i> Share Score
+      </button>
+    `;
+    
+    this.sharingContainer.querySelector('.share-button').addEventListener('click', () => {
+      this.shareScore(this.score, won);
+    });
+    
+    // Show confetti on win
+    if (won) {
+      jsConfetti.addConfetti({
+        confettiColors: [
+          '#EEE4DA', '#EDE0C8', '#F2B179', '#F59563', 
+          '#F67C5F', '#F65E3B', '#EDCF72', '#EDCC61', 
+          '#EDC850', '#EDC53F', '#EDC22E'
+        ]
+      });
+    }
   }
+  
+  // Share score to social media or copy to clipboard
+  shareScore(score, won) {
+    const text = `I ${won ? 'won' : 'scored'} ${score} points in 2048! Can you beat that?`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: '2048 Game',
+        text: text,
+        url: window.location.href
+      }).catch(err => {
+        console.log('Error sharing:', err);
+        this.copyToClipboard(text);
+      });
+    } else {
+      this.copyToClipboard(text);
+    }
+  }
+  
+  // Fallback for browsers without Web Share API
+  copyToClipboard(text) {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    
+    alert('Score copied to clipboard!');
+  }
+  
   clearMessage() {
     this.messageContainer.classList.remove("game-won", "game-over");
   }
@@ -472,6 +757,10 @@ class KeyboardInputManager {
       76: 1,
       74: 2,
       72: 3,
+      87: 0, // W
+      68: 1, // D
+      83: 2, // S
+      65: 3, // A
     };
 
     document.addEventListener("keydown", function (event) {
@@ -492,25 +781,37 @@ class KeyboardInputManager {
     var retry = document.getElementsByClassName("retry-button")[0];
     retry.addEventListener("click", this.restart.bind(this));
 
-    // Listen to swipe events
-    var gestures = [
-      Hammer.DIRECTION_UP,
-      Hammer.DIRECTION_RIGHT,
-      Hammer.DIRECTION_DOWN,
-      Hammer.DIRECTION_LEFT,
-    ];
-
+    // Touch support
+    var touchStartClientX, touchStartClientY;
+    
     var gameContainer = document.getElementsByClassName("game-container")[0];
-    var handler = Hammer(gameContainer, {
-      drag_block_horizontal: true,
-      drag_block_vertical: true,
+    
+    gameContainer.addEventListener("touchstart", function (event) {
+      if (event.touches.length > 1) return;
+      
+      touchStartClientX = event.touches[0].clientX;
+      touchStartClientY = event.touches[0].clientY;
+      
+      event.preventDefault();
     });
-
-    handler.on("swipe", function (event) {
-      event.gesture.preventDefault();
-      mapped = gestures.indexOf(event.gesture.direction);
-
-      if (mapped !== -1) self.emit("move", mapped);
+    
+    gameContainer.addEventListener("touchmove", function (event) {
+      event.preventDefault();
+    });
+    
+    gameContainer.addEventListener("touchend", function (event) {
+      if (event.touches.length > 0) return;
+      
+      var dx = event.changedTouches[0].clientX - touchStartClientX;
+      var dy = event.changedTouches[0].clientY - touchStartClientY;
+      
+      var absDx = Math.abs(dx);
+      var absDy = Math.abs(dy);
+      
+      if (Math.max(absDx, absDy) > 10) {
+        // (right : left) : (down : up)
+        self.emit("move", absDx > absDy ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0));
+      }
     });
   }
   restart(event) {
@@ -539,4 +840,3 @@ class Tile {
     this.y = position.y;
   }
 }
-

@@ -5,8 +5,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>2048 - Play 2048 Online by Leo Gopal.</title>
-
+  
   <link rel="stylesheet" href="2048.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-KBZG5PBGGW"></script>
@@ -24,14 +26,36 @@
 </head>
 
 <body>
+  <div class="theme-toggle">
+    <input type="checkbox" id="theme-switch" class="theme-switch">
+    <label for="theme-switch" class="theme-label">
+      <i class="fas fa-moon"></i>
+      <i class="fas fa-sun"></i>
+      <span class="theme-ball"></span>
+    </label>
+  </div>
 
   <div class="container">
     <div class="heading">
       <h1 class="title">2048</h1>
-      <div class="score-container">0</div>
+      <div class="scores-container">
+        <div class="score-container">0</div>
+        <div class="best-container">0</div>
+      </div>
     </div>
+
+    <div class="game-controls">
+      <button id="new-game-button" class="control-button">New Game</button>
+      <select id="game-mode" class="control-button">
+        <option value="classic">Classic 4×4</option>
+        <option value="small">Easy 3×3</option>
+        <option value="large">Expert 5×5</option>
+        <option value="time">Time Attack</option>
+      </select>
+    </div>
+
     <p class="game-intro">
-      <span id="name"></span> join the numbers and get to the <strong>2048 tile!</strong>
+      <span id="name"></span> Join the numbers and get to the <strong>2048 tile!</strong>
     </p>
 
     <div class="game-container">
@@ -39,6 +63,7 @@
         <p></p>
         <div class="lower">
           <a class="retry-button">Try again</a>
+          <div class="score-sharing"></div>
         </div>
       </div>
 
@@ -72,6 +97,32 @@
       <div class="tile-container"></div>
     </div>
 
+    <div class="game-achievements">
+      <h2>Achievements</h2>
+      <div class="achievements-container">
+        <div class="achievement" data-achievement="reach-128">
+          <i class="fas fa-lock"></i>
+          <span>Reach 128</span>
+        </div>
+        <div class="achievement" data-achievement="reach-256">
+          <i class="fas fa-lock"></i>
+          <span>Reach 256</span>
+        </div>
+        <div class="achievement" data-achievement="reach-512">
+          <i class="fas fa-lock"></i>
+          <span>Reach 512</span>
+        </div>
+        <div class="achievement" data-achievement="reach-1024">
+          <i class="fas fa-lock"></i>
+          <span>Reach 1024</span>
+        </div>
+        <div class="achievement" data-achievement="reach-2048">
+          <i class="fas fa-lock"></i>
+          <span>Reach 2048</span>
+        </div>
+      </div>
+    </div>
+
     <p class="game-explanation">
       <strong class="important">How to play:</strong> Use your
       <strong>arrow keys</strong> to move the tiles. When two tiles with the
@@ -90,7 +141,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.5/mousetrap.min.js"
     integrity="sha512-+Jg3Ynmj9hse704K48H6rBBI3jdNBjReRGBCxUWFfOz3yVurnJFWtAWssDAsGtzWYw89xFWPxShuj2T6E9EOpg=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="2048.js"></script>
+  <script type="module" src="2048.js"></script>
   <script>
     Mousetrap.bind('w h o s y o u r d a d d y', function() { 
       window.location.href = "https://leogopal.com";
