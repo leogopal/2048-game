@@ -70,6 +70,7 @@ export default function Auth() {
           </button>
         </div>
         {error && <p className="error">{error}</p>}
+        }
       </div>
     );
   }
@@ -130,6 +131,7 @@ export default function Auth() {
       </p>
       
       {error && <p className="error">{error}</p>}
+      }
     </div>
   );
 }
