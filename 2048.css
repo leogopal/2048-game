@@ -25,6 +25,7 @@
   --achievement-text: #776E65;
   --achievement-locked-color: #ccc0b3;
   --achievement-unlocked-color: #f59563;
+  --hint-color: #65b3d6;
 }
 
 [data-theme="dark"] {
@@ -54,6 +55,7 @@
   --achievement-text: #e6e0d2;
   --achievement-locked-color: #6c6353;
   --achievement-unlocked-color: #f59563;
+  --hint-color: #65b3d6;
 }
 
 html, body {
@@ -574,6 +576,47 @@ hr {
 
 .control-button:hover {
   opacity: 0.9;
+}
+
+/* Timer display */
+.timer-display {
+  background: var(--button-color);
+  color: var(--button-text-color);
+  border-radius: 3px;
+  padding: 10px 20px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+/* Hint */
+.hint-arrow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  font-size: 48px;
+  color: var(--hint-color);
+  animation: pulse 1s infinite alternate;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
 }
 
 /* Achievements */

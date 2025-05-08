@@ -1,9 +1,17 @@
 // Import dependencies
 import anime from 'animejs/lib/anime.es.js';
 import JSConfetti from 'js-confetti';
+import { loadWasmModule } from './wasm-loader.js';
 
 // Initialize confetti
 const jsConfetti = new JSConfetti();
+
+// Initialize WASM module
+let wasmModule = null;
+loadWasmModule().then(module => {
+  wasmModule = module;
+  console.log('WASM module initialized');
+});
 
 // Purpose: This file contains the game logic for the 2048 game.
 document.addEventListener("DOMContentLoaded", function () {
@@ -57,6 +65,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // New game button
     document.getElementById('new-game-button').addEventListener('click', function() {
       manager.restart();
+    });
+    
+    // AI Hint button
+    document.getElementById('hint-button').addEventListener('click', function() {
+      manager.getHint();
     });
   });
 });
@@ -296,6 +309,62 @@ class GameManager {
     });
   }
   
+  // Get a hint from the AI
+  getHint() {
+    if (this.over) return;
+    
+    // Make sure WASM module is loaded
+    if (!wasmModule) {
+      console.warn('WASM module not loaded yet');
+      return;
+    }
+    
+    // Convert grid to board array for WASM
+    const boardArray = new Int32Array(this.size * this.size);
+    this.grid.eachCell((x, y, tile) => {
+      boardArray[y * this.size + x] = tile ? tile.value : 0;
+    });
+    
+    // Get hint from WASM
+    const direction = wasmModule.getAIHint(boardArray, this.size);
+    
+    // Show hint arrow
+    if (direction >= 0) {
+      this.showHintArrow(direction);
+    }
+  }
+  
+  // Show hint arrow pointing in the suggested direction
+  showHintArrow(direction) {
+    // Remove any existing hint
+    const existingHint = document.getElementById('hint-arrow');
+    if (existingHint) {
+      existingHint.remove();
+    }
+    
+    // Create hint arrow
+    const arrow = document.createElement('div');
+    arrow.id = 'hint-arrow';
+    arrow.className = 'hint-arrow';
+    
+    // Set arrow direction class
+    const directionClass = ['up', 'right', 'down', 'left'][direction];
+    arrow.classList.add(`hint-${directionClass}`);
+    
+    // Add arrow icon
+    arrow.innerHTML = `<i class="fas fa-arrow-${directionClass}"></i>`;
+    
+    // Add to game container
+    document.querySelector('.game-container').appendChild(arrow);
+    
+    // Remove hint after 2 seconds
+    setTimeout(() => {
+      if (arrow.parentNode) {
+        arrow.parentNode.removeChild(arrow);
+      }
+    }, 2000);
+  }
+  
   // Save all tile positions and remove merger info
   prepareTiles() {
     this.grid.eachCell(function (x, y, tile) {
@@ -327,6 +396,22 @@ class GameManager {
     // Save the current tile positions and remove merger information
     this.prepareTiles();
 
+    // Use WASM for move validation if available
+    if (wasmModule) {
+      // Convert grid to board array for WASM
+      const boardArray = new Int32Array(this.size * this.size);
+      this.grid.eachCell((x, y, tile) => {
+        boardArray[y * this.size + x] = tile ? tile.value : 0;
+      });
+      
+      // Check if move is valid using WASM
+      const isValid = wasmModule.isValidMove(boardArray, this.size, direction);
+      
+      if (!isValid) {
+        return; // Skip the move if WASM says it's invalid
+      }
+    }
+
     // Traverse the grid in the right direction and move tiles
     traversals.x.forEach(function (x) {
       traversals.y.forEach(function (y) {
@@ -347,7 +432,7 @@ class GameManager {
 
             // Converge the two tiles' positions
             tile.updatePosition(positions.next);
-
+            
             // Update the score
             self.score += merged.value;
             
