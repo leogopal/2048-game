@@ -1,0 +1,84 @@
+/* Authentication Component Styles */
+.auth-container {
+  background: var(--achievement-bg);
+  border-radius: 6px;
+  padding: 20px;
+  margin: 20px 0;
+  transition: background-color 0.3s ease;
+}
+
+.auth-container h2 {
+  margin-top: 0;
+  color: var(--achievement-text);
+  transition: color 0.3s ease;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 3px;
+  border: 1px solid var(--cell-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Poppins", sans-serif;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--button-color);
+  box-shadow: 0 0 0 2px rgba(143, 122, 102, 0.2);
+}
+
+.auth-container .control-button {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--button-color);
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+  text-decoration: underline;
+}
+
+.link-button:hover {
+  color: var(--tile-64-color);
+}
+
+.error {
+  color: var(--tile-64-color);
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 3px;
+  background: rgba(247, 95, 59, 0.1);
+}
+
+.user-profile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-profile h2 {
+  margin: 0;
+}
+
+.user-profile .control-button {
+  width: auto;
+  margin: 0;
+}

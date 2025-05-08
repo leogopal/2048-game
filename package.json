@@ -19,8 +19,11 @@
   "author": "",
   "license": "GPL-3.0",
   "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
     "animejs": "^3.2.1",
-    "js-confetti": "^0.11.0"
+    "js-confetti": "^0.11.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "assemblyscript": "^0.27.2",
