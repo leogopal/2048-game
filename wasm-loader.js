@@ -15,7 +15,8 @@ export async function loadWasmModule() {
       ? await import('./build/debug.js')
       : await import('./build/release.js');
     
-    wasmModule = await module.default(imports);
+    // Directly use the module instead of trying to call a default export
+    wasmModule = module;
     console.log('WASM module loaded successfully');
     return wasmModule;
   } catch (error) {
