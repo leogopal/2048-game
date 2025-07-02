@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signUp, signIn, signOut, getCurrentUser } from '../lib/supabase';
 
 export default function Auth() {
@@ -11,7 +11,7 @@ export default function Auth() {
   const [user, setUser] = useState(null);
   
   // Check if user is already logged in
-  useState(() => {
+  useEffect(() => {
     const checkUser = async () => {
       const { user, error } = await getCurrentUser();
       if (user && !error) {
@@ -70,7 +70,6 @@ export default function Auth() {
           </button>
         </div>
         {error && <p className="error">{error}</p>}
-        }
       </div>
     );
   }
@@ -131,7 +130,6 @@ export default function Auth() {
       </p>
       
       {error && <p className="error">{error}</p>}
-      }
     </div>
   );
 }
